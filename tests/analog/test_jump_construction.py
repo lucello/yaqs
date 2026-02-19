@@ -32,7 +32,8 @@ def test_jump_ops_finiteness() -> None:
     This test creates a random Hermitian Hamiltonian H and operator L, then calls
     jump_operators_from_L with reasonable physical parameters. It checks that each
     returned jump operator contains no NaNs or infinities, and that its Frobenius
-    norm is finite. This ensures numerical stability of the construction.
+    norm is finite. This ensures numerical stability of the construction. And it
+    checks a single jump operators explicitely.
     """
     N = 8
 
@@ -152,15 +153,14 @@ def test_jumps_bose_hubbard_cooling() -> None:
     for a small Bose–Hubbard system.
 
     This test:
-      1. Builds a minimal dense Bose–Hubbard Hamiltonian (length=3, local_dim=3).
+      1. Builds a minimal dense Bose–Hubbard Hamiltonian (length=2, local_dim=3).
       2. Calls `jumps_bose_hubbard_cooling` with fixed parameters.
       3. Checks that:
          - the returned list is non-empty,
          - each jump operator has the correct matrix shape,
          - no operator contains NaNs or infinities,
-         - operator norms remain finite.
-
-    The test uses a fixed RNG seed to ensure determinism.
+         - operator norms remain finite,
+         - a specific jump operator is explicitely correct.
     """
 
     import numpy as np
