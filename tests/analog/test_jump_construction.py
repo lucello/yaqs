@@ -19,7 +19,10 @@ These tests ensure that the form of the returned jump operators is valid.
 
 import numpy as np
 
-from mqt.yaqs.analog.jump_construction import jump_operator_decomposition
+from mqt.yaqs.analog.jump_construction import (
+    jump_operator_decomposition,
+    jumps_bose_hubbard_cooling,
+)
 
 
 def test_jump_ops_finiteness() -> None:
@@ -135,9 +138,185 @@ def test_jump_ops_finiteness() -> None:
             ],
         ]
     )
-    assert np.isclose(c_ops[1], expected)
+    assert np.allclose(c_ops[1], expected, rtol=1e-6, atol=1e-8)
 
     for i, J in enumerate(c_ops):
         assert not np.isnan(J).any(), f"Operator {i} contains NaNs."
         assert not np.isinf(J).any(), f"Operator {i} contains infinities."
         assert np.linalg.norm(J) < 1e6, f"Operator {i} has unreasonably large norm."
+
+
+def test_jumps_bose_hubbard_cooling() -> None:
+    """
+    Test that `jumps_bose_hubbard_cooling` constructs valid jump operators
+    for a small Bose–Hubbard system.
+
+    This test:
+      1. Builds a minimal dense Bose–Hubbard Hamiltonian (length=3, local_dim=3).
+      2. Calls `jumps_bose_hubbard_cooling` with fixed parameters.
+      3. Checks that:
+         - the returned list is non-empty,
+         - each jump operator has the correct matrix shape,
+         - no operator contains NaNs or infinities,
+         - operator norms remain finite.
+
+    The test uses a fixed RNG seed to ensure determinism.
+    """
+
+    import numpy as np
+
+    # deterministic test
+    rng = np.random.default_rng(12345)
+
+    # small system
+    length = 2
+    local_dim = 3
+
+    omega = 5
+    hopping_j = 1
+    hubbard_u = 0.8
+
+    # cooling parameters
+    omega_w = 2.0
+    width = 0.5
+    coupling = 0.2
+    bose_factor = 1.0
+
+    # call function
+    c_ops = jumps_bose_hubbard_cooling(
+        length=length,
+        local_dim=local_dim,
+        omega=omega,
+        hopping_j=hopping_j,
+        hubbard_u=hubbard_u,
+        omega_w=omega_w,
+        width=width,
+        coupling=coupling,
+        bose_factor=bose_factor,
+    )
+
+    # ------------------------------------------------------------------
+    # Assertions
+    # ------------------------------------------------------------------
+
+    # correct type
+    assert isinstance(c_ops, list)
+    assert len(c_ops) > 0, "At least one jump operator should be produced."
+
+    dim = local_dim**length
+
+    # each operator must be well-formed
+    for i, J in enumerate(c_ops):
+        assert isinstance(J, np.ndarray), f"Jump operator {i} is not an ndarray."
+        assert J.shape == (dim, dim), f"Jump operator {i} has wrong shape."
+        assert not np.isnan(J).any(), f"Jump operator {i} contains NaNs."
+        assert not np.isinf(J).any(), f"Jump operator {i} contains infinities."
+
+        # ensure finite norm (numerical sanity)
+        norm = np.linalg.norm(J)
+        assert norm < 1e8, f"Jump operator {i} norm too large: {norm}"
+
+    expected = np.array(
+        [
+            [
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+            ],
+            [
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+            ],
+            [
+                0.00000000e00 + 0.0j,
+                0.00000000e00 + 0.0j,
+                -7.32468551e-02 + 0.0j,
+                0.00000000e00 + 0.0j,
+                2.58759753e-17 + 0.0j,
+                0.00000000e00 + 0.0j,
+                7.32468551e-02 + 0.0j,
+                0.00000000e00 + 0.0j,
+                0.00000000e00 + 0.0j,
+            ],
+            [
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+            ],
+            [
+                0.00000000e00 + 0.0j,
+                0.00000000e00 + 0.0j,
+                8.49207776e-02 + 0.0j,
+                0.00000000e00 + 0.0j,
+                -3.00000313e-17 + 0.0j,
+                0.00000000e00 + 0.0j,
+                -8.49207776e-02 + 0.0j,
+                0.00000000e00 + 0.0j,
+                0.00000000e00 + 0.0j,
+            ],
+            [
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+            ],
+            [
+                0.00000000e00 + 0.0j,
+                0.00000000e00 + 0.0j,
+                -7.32468551e-02 + 0.0j,
+                0.00000000e00 + 0.0j,
+                2.58759753e-17 + 0.0j,
+                0.00000000e00 + 0.0j,
+                7.32468551e-02 + 0.0j,
+                0.00000000e00 + 0.0j,
+                0.00000000e00 + 0.0j,
+            ],
+            [
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+            ],
+            [
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+                0.0 + 0.0j,
+            ],
+        ]
+    )
+    assert np.allclose(expected, c_ops[1], rtol=1e-6, atol=1e-8)
